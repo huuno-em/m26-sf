@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"log"
 	"os"
 	"time"
 )
@@ -57,17 +58,20 @@ func bufferProcessor(in <-chan int, bufferSize int, interval time.Duration) <-ch
 				if !ok {
 					if len(buffer) > 0 {
 						out <- buffer
+						log.Printf("Buffered data: %v\n", buffer)
 					}
 					return
 				}
 				buffer = append(buffer, num)
 				if len(buffer) == bufferSize {
 					out <- buffer
+					log.Printf("Buffered data: %v\n", buffer)
 					buffer = make([]int, 0, bufferSize)
 				}
 			case <-timer.C:
 				if len(buffer) > 0 {
 					out <- buffer
+					log.Printf("Buffered data: %v\n", buffer)
 					buffer = make([]int, 0, bufferSize)
 				}
 			}
@@ -85,8 +89,9 @@ func sourceData(out chan<- int) {
 		_, err := fmt.Sscan(scanner.Text(), &num)
 		if err == nil {
 			out <- num
+			log.Printf("Received data: %d\n", num)
 		} else {
-			fmt.Println("Некорректное число:", scanner.Text())
+			log.Printf("Invalid number: %s\n", scanner.Text())
 		}
 	}
 	close(out)
@@ -94,7 +99,7 @@ func sourceData(out chan<- int) {
 
 func consumer(in <-chan []int) {
 	for buffer := range in {
-		fmt.Println("Получены данные:", buffer)
+		log.Printf("Processed data: %v\n", buffer)
 	}
 }
 
